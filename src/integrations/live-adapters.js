@@ -760,7 +760,7 @@ async function callOpenAIImages(run) {
       authorization: `Bearer ${envMap.OPENAI_API_KEY}`
     },
     body: JSON.stringify({
-      model: process.env.OPENAI_IMAGE_MODEL || "gpt-image-1",
+      model: process.env.OPENAI_IMAGE_MODEL || "gpt-image-2",
       prompt: firstImage.prompt,
       size: process.env.OPENAI_IMAGE_SIZE || "1024x1024"
     })
