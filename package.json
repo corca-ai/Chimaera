@@ -1,0 +1,12 @@
+{
+  "name": "chimaera",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "generate": "node src/cli/generate.js",
+    "check": "SEO_LOOP_FORCE_DRY_RUN=1 node src/checks/smoke-test.js"
+  }
+}
