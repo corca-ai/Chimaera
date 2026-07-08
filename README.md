@@ -1,157 +1,117 @@
 # Chimaera: SEO Loop Harness
 
-Chimaera is a Korean SEO blog content loop system for owned-blog-first content
-operations. It helps operators move from search intent and outline approval to
-humanized Korean drafts, HTML preview/export, performance measurement, and local
-revision history.
+Chimaera는 한국어 SEO 블로그 글을 기획, 작성, 검수, HTML 미리보기, 성과 측정, 편집 기록까지 한 흐름으로 다루기 위한 로컬 우선 콘텐츠 운영 도구입니다.
 
-This first build is a local, dependency-free harness that turns a category,
-keyword, brand/product context, and conversion goal into:
+검색 의도와 키워드에서 출발해 목차를 먼저 승인하고, Claude로 본문을 생성한 뒤, 사람이 직접 편집하고, 프리뷰와 배포 패키지까지 확인하는 구조를 목표로 합니다. 생성된 원고와 성과 기록은 기본적으로 로컬 `outputs/` 폴더에 저장되며, API 키와 실제 산출물은 GitHub에 올리지 않습니다.
 
-- outline-first approval before showing the full article body
-- H1/H2/H3 article architecture
-- image placement plan per section
-- HTML export structure with TOC, JSON-LD, GTM events, CTA, and related posts
-- Claude-generated Korean draft sections after outline approval
-- im-not-ai inspired Korean humanization audit with S1/S2/S3 AI-tell detection
-- visual/image briefs with ALT text and filenames
-- CTA and lead-form event schema
-- Google Search Central oriented quality gates
-- GSC/GA4/GTM performance-loop schema
-- performance reinforcement/weakening simulation
-- saved performance snapshots for GSC/GA4/GTM learning loops
-- saved model artifacts for Claude drafts, GPT image outputs, WordPress drafts, and tracking contracts
+## 주요 기능
 
-## Run
+- 목차 승인 후 본문을 생성하는 outline-first 흐름
+- H1/H2/H3 중심의 SEO 글 구조 설계
+- 섹션별 이미지 삽입 위치, ALT, 파일명 계획
+- Claude 기반 한국어 본문 생성
+- 본문 안에서 직접 문장을 드래그해 Claude로 부분 rewrite
+- 직접 편집한 본문과 rewrite 이력을 로컬 revision history로 저장
+- Google Search Central 기준을 반영한 SEO 품질 게이트
+- HTML 미리보기, JSON-LD, canonical, GTM dataLayer, CTA form 생성
+- WordPress/Next.js/이미지/GTM용 배포 패키지 export
+- GSC, GA4, GTM 성과 지표를 입력해 강화/약화 루프 기록
+- `epoko77-ai/im-not-ai`에서 영감을 받은 한국어 AI 티 감지/윤문 게이트
+
+## 실행
 
 ```bash
 npm install
 npm run dev
 ```
 
-Then open the printed localhost URL.
+서버가 뜨면 출력되는 localhost 주소를 브라우저에서 엽니다.
 
-On macOS, the included `SEO Loop Harness.command` launcher can start the local
-server and open the browser. The generated `.app` bundle is intentionally
-machine-local and is not committed.
+기본 포트를 명시하려면 아래처럼 실행합니다.
 
-## Local API
+```bash
+PORT=5174 npm run dev
+```
 
-- `POST /api/outline`: creates and stores an outline-only planning run with TOC, image placement, and HTML export structure. It does not generate the article body.
-- `POST /api/generate`: creates and stores one content loop run.
-- `GET /api/runs`: lists recent stored runs.
-- `POST /api/preview/create`: saves a publishable HTML preview with meta, canonical, JSON-LD, GTM dataLayer, CTA form, and related-post UI.
-- `GET /api/preview/list`: lists saved previews.
-- `GET /previews/:filename`: serves saved preview HTML.
-- `POST /api/package/create`: exports a publish package with owned article, preview, WordPress payload, Next.js props, JSON-LD, GTM events, image briefs, Naver derivative brief, and review checklist.
-- `GET /api/package/list`: lists saved publish packages.
-- `GET /packages/:content_id/:filename`: serves saved package artifacts.
-- `POST /api/keywords/suggest`: estimates keyword candidates, intent, template fit, and priority score.
-- `POST /api/benchmark`: analyzes benchmark URLs for title/meta, H tags, schema, ALT, TOC, FAQ, and CTA signals.
-- `POST /api/schedule/propose`: creates a local publishing schedule proposal.
-- `POST /api/schedule/create`: saves schedule jobs to the local queue.
-- `GET /api/schedule/list`: lists queued publishing jobs.
-- `POST /api/schedule/dispatch`: processes due schedule jobs by creating a run, publish package, adapter execution, and updated queue status.
-- `POST /api/performance/simulate`: turns GSC/GA4/GTM-like metrics into strengthen/weaken actions.
-- `POST /api/performance/record`: stores a performance snapshot and its strengthen/weaken decisions.
-- `GET /api/performance/list`: lists recent saved performance snapshots.
-- `GET /api/integrations/status`: shows which external adapters are live-ready or dry-run.
-- `POST /api/integrations/run`: executes all adapters against the current run input, using dry-run when secrets are missing, then stores the execution record.
-- `GET /api/integrations/executions`: lists recent saved adapter execution records.
-- `GET /api/model-artifacts`: lists normalized model/output artifacts created from adapter executions.
-- `GET /model-artifacts/:content_id/:artifact_id/:filename`: serves saved artifact files.
+macOS에서는 포함된 `SEO Loop Harness.command` 파일을 더블클릭해 로컬 서버를 켜고 브라우저를 열 수 있습니다. `.app` 번들은 각 컴퓨터의 절대경로가 들어가는 로컬 산출물이므로 GitHub에는 포함하지 않습니다.
 
-## Current Scope
+## 환경 변수
 
-The main UI intentionally exposes only the steps that are real in this build:
-`목차`, `HTML 구조`, `본문`, `이미지`, `HTML 미리보기`, `파일 내보내기`, and
-`성과`.
+서버는 프로젝트 루트의 `.env` 파일과 셸 환경 변수를 읽습니다. `.env`는 Git에 커밋하지 않습니다. 필요한 키 이름은 `.env.example`을 참고합니다.
 
-The main UI is outline-first and does not call Claude on page load. The first
-`시작하기` action calls `/api/outline`, waits for Claude, and creates only the
-keyword brief, H1/H2 table of contents, image placement plan, and HTML export
-structure. It does not create a local article body. The full article body is
-generated only after outline approval, through the explicit Claude writing
-action. The selected Anthropic model comes from the input form first, then
-`ANTHROPIC_MODEL`, then the default `claude-opus-4-8`.
+- `ANTHROPIC_API_KEY`: Claude 목차/본문/rewrite 생성
+- `ANTHROPIC_MODEL`: UI 모델 입력값이 비었을 때 사용할 서버 기본 모델
+- `OPENAI_API_KEY`: GPT 이미지 생성
+- `OPENAI_IMAGE_MODEL`: 이미지 생성 모델
+- `OPENAI_IMAGE_SIZE`: 이미지 크기
+- `WORDPRESS_BASE_URL`, `WORDPRESS_USERNAME`, `WORDPRESS_APP_PASSWORD`: Headless WordPress draft 생성
+- `GOOGLE_SERVICE_ACCOUNT_JSON`, `GSC_SITE_URL`, `GA4_PROPERTY_ID`: GSC/GA4 데이터 연동
 
-The left input panel includes operator-level context fields:
-`writingInstruction` for the user's concrete editorial request,
-`referenceUrls` for source/reference links, and `audience` for reader targeting.
-These fields are passed into both the Claude outline prompt and the Claude body
-prompt.
+키가 없으면 외부 adapter는 dry-run 또는 명확한 오류로 동작합니다. 조용히 가짜 결과를 만든 것처럼 넘어가지 않는 것을 원칙으로 합니다.
 
-If the outline is not good enough, the article tab has a `목차 다시 쓰기`
-control. The rewrite instruction is sent back to Claude together with the
-previous outline, so the system iterates before article writing begins.
+## 현재 UI 흐름
 
-Keyword recommendation, benchmark crawling, integration status, run history,
-and publishing queue screens are not exposed in the main UI right now. They
-should return only when the underlying live workflow is ready enough to be used
-as an operator-facing step.
+메인 UI는 현재 실제로 작동하는 단계만 노출합니다.
 
-The `기록` tab is backed by local files under `outputs/`: runs, model artifacts,
-HTML previews, publish packages, and performance snapshots. The UI defaults to
-the current content ID so unrelated historical test data does not leak into the
-current workflow. Operators can explicitly switch to all-history mode when they
-need an audit view.
+- `목차`: Claude API로 목차와 이미지 위치를 먼저 생성합니다.
+- `HTML 구조`: 실제 export 기준이 될 HTML 구조를 확인합니다.
+- `본문`: 목차 승인 후 Claude로 본문을 생성하고, 본문 안에서 직접 편집합니다.
+- `이미지`: 섹션별 이미지 브리프와 ALT를 확인합니다.
+- `HTML 미리보기`: publishable HTML preview를 생성합니다.
+- `파일 내보내기`: WordPress/Next.js/GTM/이미지 브리프 등 배포 패키지를 만듭니다.
+- `성과`: 실제 GSC/GA4/GTM 숫자를 입력해 콘텐츠 성과 루프를 저장합니다.
+- `기록`: 현재 콘텐츠와 연결된 생성, 미리보기, 패키지, 성과, 편집 기록을 확인합니다.
 
-Timestamps are stored as ISO UTC strings for future database migration. The UI
-renders them as Korean time, `Asia/Seoul` / `UTC+09:00` / KST.
+왼쪽 입력 패널에는 `writingInstruction`, `referenceUrls`, `audience`, `brandName`, `productName`, `leadGoal`, Claude 모델 입력값이 있습니다. 참고 링크는 문맥으로만 쓰며, 실제 URL 내용을 읽었다고 단정하지 않습니다.
 
-The humanization gate is informed by
-[epoko77-ai/im-not-ai](https://github.com/epoko77-ai/im-not-ai). The local
-implementation is a fast, inspectable gate that detects Korean AI-tell patterns
-such as translationese, mechanical connectors, signature AI phrases, rhythm
-uniformity, formal-noun overuse, and over-polishing risk. It is not a vendored
-copy of the full strict Claude Code pipeline.
+## 본문 편집과 기록
 
-## Adapter Slots
+본문 탭의 원고는 `contenteditable` 기반 편집기입니다.
 
-The server reads environment variables from the shell and from a local `.env`
-file in the project root. `.env` is ignored by git.
+1. 본문 일부를 드래그합니다.
+2. 오른쪽 패널에 수정 지시를 입력합니다.
+3. `선택 문장 Claude rewrite`를 누르면 선택 범위만 교체됩니다.
+4. 직접 손으로 수정한 뒤 `현재 편집본 저장`을 누르면 로컬 revision으로 저장됩니다.
 
-- `ANTHROPIC_API_KEY` for Claude writing
-- `ANTHROPIC_MODEL` as a server-side fallback when the UI model field is empty
-- `OPENAI_API_KEY` for GPT image generation
-- `WORDPRESS_BASE_URL`, `WORDPRESS_USERNAME`, `WORDPRESS_APP_PASSWORD` for Headless WordPress drafts
-- `GOOGLE_SERVICE_ACCOUNT_JSON`, `GSC_SITE_URL`, `GA4_PROPERTY_ID` for GSC and GA4 data
+편집 기록은 `outputs/revisions/{content_id}` 아래 JSON으로 저장됩니다. 기록에는 전/후 Markdown, 선택 원문, 변경 문장, 수정 지시, 한 줄 요약, 모델 정보가 포함됩니다.
 
-GTM starts with a schema-first contract: the harness emits `content_view`,
-`cta_click`, and `lead_submit` event payloads before it tries to automate GTM
-workspace changes.
+## 로컬 저장소
 
-When secrets are absent, adapters intentionally return dry-run payloads. This
-keeps the loop inspectable and prevents hidden failures while credentials are
-being prepared.
+`outputs/`는 운영자가 만든 실제 산출물이 쌓이는 로컬 폴더입니다. 기본적으로 Git에 올리지 않습니다.
 
-Every adapter run is stored under `outputs/executions`. This makes Claude/GPT
-image/WordPress/GSC/GA4/GTM outcomes auditable after the browser session is
-closed, and it gives the later learning loop a concrete history to compare
-against performance data.
+- `outputs/runs`: 콘텐츠 생성 run
+- `outputs/executions`: Claude/GPT/WordPress/GSC/GA4/GTM adapter 실행 기록
+- `outputs/model-artifacts`: 모델 산출물 정규화 파일
+- `outputs/previews`: HTML 미리보기
+- `outputs/packages`: 배포 패키지
+- `outputs/performance`: 성과 스냅샷
+- `outputs/revisions`: 본문 편집 이력
 
-Performance snapshots are stored under `outputs/performance`. They preserve the
-metrics, derived CTR/lead rates, signal verdicts, and recommended actions so
-the system can reinforce or weaken keyword, template, CTA, and form patterns
-over time.
+시간은 저장 시 ISO UTC로 남기고, UI에서는 한국시간 `Asia/Seoul`, `UTC+09:00`, KST 기준으로 표시합니다.
 
-Model artifacts are stored under `outputs/model-artifacts`. The artifact layer
-normalizes live or dry-run outputs into files operators can reuse: Claude
-Markdown drafts, GPT image prompts or image files, WordPress draft payloads, and
-tracking contracts.
+## 주요 API
 
-## Preview Output
+- `POST /api/outline`: 목차, 이미지 위치, HTML export 구조를 생성합니다. 본문은 만들지 않습니다.
+- `POST /api/generate`: 하나의 콘텐츠 루프 run을 생성합니다.
+- `GET /api/runs`: 최근 저장된 run을 조회합니다.
+- `POST /api/input/enhance`: 왼쪽 입력 필드 하나를 전체 문맥 기준으로 개선합니다.
+- `POST /api/editor/rewrite`: 본문에서 선택한 문장을 Claude로 rewrite합니다.
+- `POST /api/editor/revision/save`: 현재 편집본 또는 rewrite 결과를 revision으로 저장합니다.
+- `GET /api/editor/revision/list`: 현재 콘텐츠의 revision 목록을 조회합니다.
+- `POST /api/editor/revision/read`: revision 상세를 읽습니다.
+- `POST /api/preview/create`: publishable HTML preview를 저장합니다.
+- `GET /previews/:filename`: 저장된 HTML preview를 제공합니다.
+- `POST /api/package/create`: 배포 패키지를 생성합니다.
+- `GET /packages/:content_id/:filename`: 패키지 산출물을 제공합니다.
+- `POST /api/benchmark`: 벤치마크 URL의 title, meta, H tag, schema, ALT, TOC, FAQ, CTA 신호를 분석합니다.
+- `POST /api/keywords/suggest`: 키워드 후보, 검색 의도, 템플릿 적합도, 우선순위를 추정합니다.
+- `POST /api/performance/record`: 실제 성과 숫자를 저장하고 강화/약화 판단을 남깁니다.
+- `GET /api/history/list`: run, model artifact, preview, package, performance, revision 기록을 조회합니다.
+- `POST /api/integrations/run`: 현재 run에 대해 외부 adapter를 실행하고 결과를 저장합니다.
 
-The preview renderer is intentionally close to a publishable owned-blog page:
-it includes SEO title/description, canonical, JSON-LD, page-view dataLayer,
-lead-submit dataLayer, section image placeholders, CTA form, and a related-post
-area. This lets the team review the article surface before WordPress or Next.js
-publishing is connected.
+## 배포 패키지
 
-## Publish Package
-
-The package exporter writes a deployable handoff folder under
-`outputs/packages/{content_id}`. Each folder includes:
+`파일 내보내기`는 `outputs/packages/{content_id}` 아래에 배포용 handoff 폴더를 만듭니다.
 
 - `owned-article.md`
 - `owned-preview.html`
@@ -164,12 +124,13 @@ The package exporter writes a deployable handoff folder under
 - `naver-derivative.json`
 - `review-checklist.md`
 
-The Naver artifact is deliberately a derivative brief, not copied prose. It is
-meant to preserve the owned blog as the measured source of truth while using
-Naver as a support channel.
+Naver 산출물은 원문 복사가 아니라 derivative brief입니다. 자사 블로그를 측정 가능한 원본으로 두고, Naver는 보조 채널로 다루기 위한 설계입니다.
 
-## Core Principle
+## 운영 원칙
 
-The owned blog is the source of truth for measurement. Naver Blog is treated as
-a support channel that must be strongly re-planned from the master brief, not
-copied, to reduce duplicate-content risk.
+- 자사 블로그가 측정과 학습의 기준입니다.
+- Naver Blog는 원문 복사 채널이 아니라, 별도 기획된 보조 채널입니다.
+- 목차 승인 전에는 본문을 만들지 않습니다.
+- mock 기능은 UI에 올리지 않습니다. 실제로 작동하는 단계만 보여줍니다.
+- API 키, 생성 원고, 성과 데이터, 편집 이력은 기본적으로 로컬에만 둡니다.
+- 한국어 문장은 번역투보다 사람이 직접 쓴 듯한 자연스러운 문체를 우선합니다.
